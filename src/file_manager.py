@@ -1,11 +1,26 @@
 import os
 import time
+import shutil
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from service.FileConverter import *
-from service.functions import *
-from service.chromadb.chromafunctions import *
+from service.FileConverter import (
+    convert_pdf_to_txt,
+    convert_csv_to_txt
+)
+from service.functions import (
+    file_or_folder,
+    replace_first_folder,
+    create_missing_directories,
+    replace_file_extension,
+    get_file_extension,
+    copy_file
+)
+from service.chromadb.chromafunctions import (
+    create_collection,
+    add_document_txt,
+    delete_a_file_in_the_collection
+)
 
 
 
