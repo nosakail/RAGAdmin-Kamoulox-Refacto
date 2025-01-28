@@ -1,7 +1,47 @@
 import os
 from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 import csv
 import shutil
+
+def _check_file_permissions(source_path: str, save_path: str) -> None:
+    """
+    Vérifie les permissions des fichiers source et destination.
+    
+    Raises:
+        FileNotFoundError: Si le fichier source n'existe pas
+        PermissionError: Si les permissions sont insuffisantes
+    """
+    if not os.path.exists(source_path):
+        raise FileNotFoundError(f"Le fichier PDF source {source_path} n'existe pas.")
+
+    if not os.access(source_path, os.R_OK):
+        raise PermissionError(f"Impossible de lire le fichier source {source_path}.")
+
+    save_dir = os.path.dirname(save_path) or "."
+    if not os.access(save_dir, os.W_OK):
+        raise PermissionError(f"Impossible d'écrire dans le dossier de destination {save_dir}.")
+
+def _handle_pdf_error(error: PdfReadError) -> None:
+    """
+    Gère les erreurs spécifiques au PDF.
+    
+    Args:
+        error: L'erreur PDF à gérer
+
+    Raises:
+        PermissionError: Si le PDF est protégé
+        ValueError: Si le PDF est corrompu ou vide
+        IOError: Pour les autres erreurs de lecture PDF
+    """
+    error_msg = str(error).lower()
+    if "encrypted" in error_msg or "password" in error_msg:
+        raise PermissionError("Le fichier PDF est protégé par mot de passe")
+    if "file is empty" in error_msg:
+        raise ValueError("Le fichier PDF est vide")
+    if "file is damaged" in error_msg:
+        raise ValueError("Le fichier PDF est endommagé")
+    raise IOError(f"Erreur lors de la lecture du PDF: {str(error)}")
 
 def convert_pdf_to_txt(source_path: str, save_path: str) -> None:
     """
@@ -16,46 +56,26 @@ def convert_pdf_to_txt(source_path: str, save_path: str) -> None:
 
     Raises:
         FileNotFoundError: Si le fichier PDF source n'existe pas.
+        PermissionError: Si les permissions sont insuffisantes ou le PDF est protégé.
         IOError: En cas de problème lors de l'écriture du fichier texte.
-        Exception: Pour toute autre erreur inattendue.
+        ValueError: Si le fichier PDF est vide ou corrompu.
 
     Example:
         convert_pdf_in_txt("document.pdf", "document.txt")
     """
-    # Typage explicite des variables
-    source_path: str
-    save_path: str
-    reader: PdfReader
-    text: str
-    page_num: int
-    os.chmod(source_path, 0o777)
-    if not os.access(source_path, os.R_OK):
-        print(f"Erreur : Impossible de lire le fichier source {source_path}. Vérifiez les permissions.")
-        return
-
-    if not os.access(os.path.dirname(save_path) or ".", os.W_OK):
-        print(f"Erreur : Impossible d'écrire dans le dossier de destination {os.path.dirname(save_path)}.")
-        return
-
+    _check_file_permissions(source_path, save_path)
+    
     try:
-        # Charger le fichier PDF
         reader = PdfReader(source_path)
-
-        # Ouvrir le fichier texte en mode écriture
         with open(save_path, 'w', encoding='utf-8') as text_file:
-            for page_num, page in enumerate(reader.pages, start=1):
-                # Extraire le texte de la page
+            for page in reader.pages:
                 text = page.extract_text()
                 if text:
                     text_file.write(text + "\n")
-
-                # Ajouter une ligne vide entre les pages pour lisibilité
-                text_file.write("\n")
-
-        print(f"Conversion réussie ! Le fichier texte a été enregistré sous : {save_path}")
-    except Exception as e:
-        e: Exception  # Exception capturée
-        print(f"Erreur lors de la conversion : {e}")
+    except (IOError, ValueError) as e:
+        raise
+    except PdfReadError as e:
+        _handle_pdf_error(e)
 
 def convert_csv_to_txt(source_path: str, save_path: str) -> None:
     """
@@ -67,11 +87,9 @@ def convert_csv_to_txt(source_path: str, save_path: str) -> None:
 
     Raises:
         FileNotFoundError: Si le fichier source n'existe pas.
-        Exception: Pour toute autre erreur inattendue.
-
-    Exemple:
-        csv_to_txt("fichier.csv", "fichier.txt")
-        Cette commande convertira le fichier "fichier.csv" en "fichier.txt".
+        PermissionError: Si les permissions sont insuffisantes pour lire/écrire les fichiers.
+        csv.Error: Si une erreur survient lors de la lecture du CSV.
+        IOError: Si une erreur survient lors des opérations de fichier.
     """
     if not os.path.exists(source_path):
         raise FileNotFoundError(f"Le fichier {source_path} n'a pas été trouvé.")
@@ -79,11 +97,16 @@ def convert_csv_to_txt(source_path: str, save_path: str) -> None:
     try:
         with open(source_path, 'r', newline='') as csvfile, \
              open(save_path, 'w', encoding='utf-8') as txtfile:
-            csvreader = csv.reader(csvfile)
-            for row in csvreader:
-                txtfile.write(','.join(row) + '\n')
-    except Exception as e:
-        raise Exception(f"Une erreur est survenue lors de la conversion: {str(e)}")
+            try:
+                csvreader = csv.reader(csvfile)
+                for row in csvreader:
+                    txtfile.write(','.join(row) + '\n')
+            except csv.Error as e:
+                raise csv.Error(f"Erreur lors de la lecture du CSV: {str(e)}")
+    except IOError as e:
+        raise IOError(f"Erreur lors des opérations de fichier: {str(e)}")
+    except PermissionError as e:
+        raise PermissionError(f"Erreur de permissions: {str(e)}")
 
 def copy_file(source: str, destination: str) -> None:
     """
@@ -95,7 +118,9 @@ def copy_file(source: str, destination: str) -> None:
 
     Raises:
         FileNotFoundError: Si le fichier source n'est pas trouvé.
-        Exception: Si une autre erreur se produit lors de la copie du fichier.
+        PermissionError: Si les permissions sont insuffisantes pour lire/écrire les fichiers.
+        OSError: Si une erreur système survient lors de la copie (espace disque insuffisant, etc.).
+        SameFileError: Si la source et la destination sont le même fichier.
 
     Exemple:
         copy_file("source.txt", "copie.txt")
@@ -106,5 +131,9 @@ def copy_file(source: str, destination: str) -> None:
 
     try:
         shutil.copy2(source, destination)
-    except Exception as e:
-        raise Exception(f"Erreur lors de la copie du fichier : {str(e)}")
+    except shutil.SameFileError:
+        raise shutil.SameFileError(f"La source et la destination sont le même fichier : {source}")
+    except PermissionError as e:
+        raise PermissionError(f"Permissions insuffisantes pour copier le fichier : {str(e)}")
+    except OSError as e:
+        raise OSError(f"Erreur système lors de la copie du fichier : {str(e)}")

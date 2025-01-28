@@ -1,17 +1,17 @@
 from langchain_core.tracers.langchain import get_client
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from langchain.prompts import PromptTemplate
 from langchain.llms import HuggingFacePipeline
+from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import torch
 
 
-def set_up_pipeline(modelPath):
+def set_up_pipeline(path_model):
     """
     Configure la pipeline pour utiliser le modèle et le tokenizer.
     """
-    tokenizer = AutoTokenizer.from_pretrained(modelPath)
-    model = AutoModelForCausalLM.from_pretrained(modelPath)
+    tokenizer = AutoTokenizer.from_pretrained(path_model)
+    model = AutoModelForCausalLM.from_pretrained(path_model)
 
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -35,7 +35,10 @@ def set_up_pipeline(modelPath):
 
 
 if __name__ == "__main__":
-    from service.chromadb.chromafunctions import *
+    try:
+        from service.chromadb.ChromaFunctions import *
+    except:
+        pass
 
     client = get_client("127.0.0.1")
     collections = client.list_collections()

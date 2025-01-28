@@ -2,6 +2,13 @@ from fastapi import FastAPI
 import sys
 from pathlib import Path
 import uvicorn
+import os
+import json
+import logging
+import re
+import threading
+import queue
+from datetime import datetime
 
 # Ajouter le dossier 'src' à sys.path
 sys.path.append(str(Path(__file__).resolve().parent))
@@ -9,8 +16,8 @@ sys.path.append(str(Path(__file__).resolve().parent / "service" / "controller"))
 sys.path.append(str(Path(__file__).resolve().parent / "llm"))
 
 # Importer les modules
-from service.controller.handling_request import handling_request
-from service.chromadb.chromafunctions import search_in_collection_text
+from service.controller.HandlingRequest import handling_request
+from service.chromadb.ChromaFunctions import search_in_collection_text
 
 # Définir le chemin vers le modèle
 modelPath = "./Meta-Llama-3.1-8B-Instruct"

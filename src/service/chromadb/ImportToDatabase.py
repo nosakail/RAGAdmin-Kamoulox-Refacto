@@ -1,4 +1,4 @@
-from service.chromadb.chromafunctions import *
+from service.chromadb.ChromaFunctions import *
 from FileConverter import *
 client = get_client("127.0.0.1")
 

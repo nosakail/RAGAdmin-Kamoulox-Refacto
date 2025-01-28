@@ -1,15 +1,13 @@
-import os
 import pytest
+import os
+import shutil
 from pathlib import Path
 
-# Imports spécifiques au lieu d'imports génériques
-from src.llm.functions import (
-    file_or_folder,
-    create_missing_directories,
-    replace_first_folder,
-    get_file_extension,
-    replace_file_extension,
-    create_empty_file
+from src.llm.Functions import (
+    check_file_exists,
+    create_directory,
+    delete_directory,
+    delete_file
 )
 
 class TestFileOperations:

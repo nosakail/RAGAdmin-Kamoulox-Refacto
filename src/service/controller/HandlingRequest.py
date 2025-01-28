@@ -1,14 +1,14 @@
 from langchain.prompts import PromptTemplate
+from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.llms import HuggingFacePipeline
 from langchain.chains import LLMChain
 
-from src.llm.prompt_with_langchain import set_up_pipeline
-from src.service.chromadb.chromafunctions import search_in_collection_text
+from src.llm.PromptWithLangchain import set_up_pipeline
+from src.service.chromadb.ChromaFunctions import search_in_collection_text
 
 
 def handling_request(request, path_model, context):
-    #context = search_in_collection_text("codedelaroute", request, 1)
-    local_llm, tokenizer, pipe = set_up_pipeline(path_model)
+    local_llm = set_up_pipeline(path_model)
 
     template = PromptTemplate.from_template(
     """
