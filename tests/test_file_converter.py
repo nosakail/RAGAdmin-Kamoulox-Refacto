@@ -1,5 +1,8 @@
 import os
 import pytest
+from pathlib import Path
+
+# Imports spécifiques des fonctions de conversion
 from src.llm.FileConverter import (
     convert_pdf_to_txt,
     convert_csv_to_txt,

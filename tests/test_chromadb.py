@@ -1,4 +1,7 @@
 import pytest
+from pathlib import Path
+
+# Imports spécifiques des fonctions ChromaDB
 from src.service.chromadb.chromafunctions import (
     get_client,
     create_collection,

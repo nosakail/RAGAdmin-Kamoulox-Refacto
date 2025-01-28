@@ -1,6 +1,12 @@
 import os
 from pathlib import Path
-from service.functions import *
+
+# Importer uniquement les fonctions nécessaires au lieu de '*'
+from src.service.functions import (
+    file_or_folder as service_file_or_folder,
+    create_missing_directories as service_create_directories,
+    replace_first_folder as service_replace_folder
+)
 
 
 def file_or_folder(path:str) -> str :
