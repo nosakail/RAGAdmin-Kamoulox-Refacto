@@ -48,3 +48,12 @@ La configuration des machines est la suivante :
   
 </table>
 
+# Tous les tests
+pytest tests/
+
+# Un fichier spécifique
+pytest tests/test_file_operations.py
+
+# Avec couverture
+pytest tests/ --cov=src/
+
