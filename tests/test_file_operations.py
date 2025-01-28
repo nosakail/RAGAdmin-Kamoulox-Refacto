@@ -1,5 +1,8 @@
 import os
 import pytest
+from pathlib import Path
+
+# Imports spécifiques au lieu d'imports génériques
 from src.llm.functions import (
     file_or_folder,
     create_missing_directories,
