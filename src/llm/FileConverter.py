@@ -1,5 +1,5 @@
 import os
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 import csv
 import shutil
 
@@ -57,7 +57,7 @@ def convert_pdf_to_txt(source_path: str, save_path: str) -> None:
         e: Exception  # Exception capturée
         print(f"Erreur lors de la conversion : {e}")
 
-def convert_csv_to_txt(source_path: str, save_path: str)->None:
+def convert_csv_to_txt(source_path: str, save_path: str) -> None:
     """
     Convertit un fichier CSV en fichier TXT.
 
@@ -65,25 +65,27 @@ def convert_csv_to_txt(source_path: str, save_path: str)->None:
         source_path (str): Le chemin du fichier CSV à convertir.
         save_path (str): Le chemin du fichier TXT de sortie.
 
+    Raises:
+        FileNotFoundError: Si le fichier source n'existe pas.
+        Exception: Pour toute autre erreur inattendue.
+
     Exemple:
         csv_to_txt("fichier.csv", "fichier.txt")
         Cette commande convertira le fichier "fichier.csv" en "fichier.txt".
     """
+    if not os.path.exists(source_path):
+        raise FileNotFoundError(f"Le fichier {source_path} n'a pas été trouvé.")
+
     try:
-        with open(source_path, mode='r', newline='', encoding='utf-8') as csv_f:
-            csv_reader = csv.reader(csv_f)
-            with open(save_path, mode='w', encoding='utf-8') as txt_f:
-                for row in csv_reader:
-                    txt_f.write(";".join(row) + "\n")  # Utilisation de tabulation pour séparer les colonnes
-
-        print(f"Le fichier {source_path} a été converti en {save_path}")
-
-    except FileNotFoundError:
-        print(f"Le fichier {source_path} n'a pas été trouvé.")
+        with open(source_path, 'r', newline='') as csvfile, \
+             open(save_path, 'w', encoding='utf-8') as txtfile:
+            csvreader = csv.reader(csvfile)
+            for row in csvreader:
+                txtfile.write(','.join(row) + '\n')
     except Exception as e:
-        print(f"Une erreur est survenue: {e}")
+        raise Exception(f"Une erreur est survenue lors de la conversion: {str(e)}")
 
-def copy_file(source, destination):
+def copy_file(source: str, destination: str) -> None:
     """
     Copie le contenu d'un fichier source vers un fichier de destination.
 
@@ -99,10 +101,10 @@ def copy_file(source, destination):
         copy_file("source.txt", "copie.txt")
         Cette commande copiera le contenu de "source.txt" vers "copie.txt".
     """
+    if not os.path.exists(source):
+        raise FileNotFoundError(f"Le fichier source {source} n'existe pas.")
+
     try:
-        shutil.copy(source, destination)
-        print(f"Le fichier a été copié de {source} vers {destination}")
-    except FileNotFoundError:
-        print("Le fichier source n'a pas été trouvé.")
+        shutil.copy2(source, destination)
     except Exception as e:
-        print(f"Une erreur est survenue: {e}")
+        raise Exception(f"Erreur lors de la copie du fichier : {str(e)}")

@@ -6,7 +6,7 @@ import hashlib
 import os
 
 
-Sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name='/mnt/sdb/RAGAdmin/LLM/all-mpnet-base-v2')
+Sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name='sentence-transformers/all-mpnet-base-v2')
 def stable_hash(file_path):
     """
     Génère un hachage stable basé sur le contenu d'un fichier.
@@ -243,4 +243,3 @@ def delete_a_file_in_the_collection(txt_path: str, collection_name: str, ip_host
 if __name__ == "__main__":
     Collection_name = "codedelaroute"
     add_document_txt("codedelaroute.txt",Collection_name)
-

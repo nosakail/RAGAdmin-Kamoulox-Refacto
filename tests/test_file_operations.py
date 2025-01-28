@@ -18,9 +18,13 @@ class TestFileOperations:
     def teardown_method(self):
         """Nettoyage après chaque test"""
         if os.path.exists(self.test_dir):
-            for file in os.listdir(self.test_dir):
-                os.remove(os.path.join(self.test_dir, file))
-            os.rmdir(self.test_dir)
+            for root, dirs, files in os.walk(self.test_dir, topdown=False):
+                for name in files:
+                    os.remove(os.path.join(root, name))
+                for name in dirs:
+                    os.rmdir(os.path.join(root, name))
+            if os.path.exists(self.test_dir):
+                os.rmdir(self.test_dir)
 
     def test_file_or_folder(self):
         test_file = os.path.join(self.test_dir, "temp_test.txt")
